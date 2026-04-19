@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star } from 'lucide-react';
+import { Star, TrendingUp, TrendingDown } from 'lucide-react';
 import type { Coin } from '../types';
 import { usePortfolio } from '../context/PortfolioContext';
 import { getCoinColor } from '../utils/colors';
@@ -48,8 +48,8 @@ const CryptoCard: React.FC<Props> = ({ coin, rank, maxVolume }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
-        boxShadow: isHovered ? `0 0 15px ${brandColor}33` : 'none',
-        borderColor: isHovered ? `${brandColor}66` : 'var(--card-border)'
+        boxShadow: isHovered ? `0 0 20px ${brandColor}40` : 'none',
+        borderColor: isHovered ? `${brandColor}80` : 'var(--card-border)'
       }}
     >
       <div className="rank">#{rank}</div>
@@ -66,6 +66,7 @@ const CryptoCard: React.FC<Props> = ({ coin, rank, maxVolume }) => {
       <ChartSparkline coinId={coin.id} />
       <div className="price">{formatCurrency(coin.current_price)}</div>
       <div className={`change-badge ${isUp ? 'up' : 'down'}`}>
+        {isUp ? <TrendingUp size={16} style={{ marginRight: 4 }} /> : <TrendingDown size={16} style={{ marginRight: 4 }} />}
         {isUp ? '+' : ''}{change.toFixed(2)}%
       </div>
       <div className="volume-container">
