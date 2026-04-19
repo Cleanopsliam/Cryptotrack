@@ -26,49 +26,42 @@ const Cryptobot = () => {
     scrollToBottom();
   }, [messages]);
 
-  const generateBotResponse = (text: string) => {
-    // See /cryptobot.md for system prompt and guardrails
-    const lower = text.toLowerCase();
-    
-    // Simple mock guardrail check
-    const isCryptoRelated = ['bitcoin', 'btc', 'ethereum', 'eth', 'crypto', 'market', 'status', 'portfolio', 'coin', 'token', 'price'].some(keyword => lower.includes(keyword));
-
-    if (!isCryptoRelated) {
-      return "I am only designed to provide you with the best Crypto information.";
-    }
-
-    if (lower.includes('bitcoin') || lower.includes('btc')) {
-      return "Bitcoin (BTC) is the first and most widely recognized cryptocurrency. It often leads the market trends.";
-    }
-    if (lower.includes('ethereum') || lower.includes('eth')) {
-      return "Ethereum (ETH) is a decentralized platform that runs smart contracts and is the second-largest crypto by market cap.";
-    }
-    if (lower.includes('market') || lower.includes('status')) {
-      return "The crypto market is highly volatile. Currently, the top coins by volume are typically stablecoins like USDT and majors like BTC/ETH.";
-    }
-    if (lower.includes('portfolio')) {
-      return "You can add coins to your portfolio by clicking the star icon next to them on the dashboard.";
-    }
-    return "I am a simple simulated bot. I don't have real-time live LLM API access right now, but I can talk about Bitcoin, Ethereum, and your portfolio!";
-  };
-
-  const handleSend = (e: React.FormEvent) => {
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const userMessage: Message = { id: Date.now().toString(), text: input, sender: 'user' };
+    const userText = input;
+    const userMessage: Message = { id: Date.now().toString(), text: userText, sender: 'user' };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
 
-    // Simulate bot delay
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userText })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to connect to the bot API');
+      }
+
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: generateBotResponse(userMessage.text),
+        text: data.reply,
         sender: 'bot'
       };
       setMessages(prev => [...prev, botMessage]);
-    }, 600);
+    } catch (err: any) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: `Error: ${err.message}. Are you running this via 'npx vercel dev' with your API key set?`,
+        sender: 'bot'
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
   };
 
   return (
